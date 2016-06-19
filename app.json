@@ -1,0 +1,6 @@
+{
+  "name": "Video tracker",
+  "description": "GraphQL based backend for tracking youtube videos",
+  "repository": "https://github.com/olivierdeckers/video-tracker",
+  "keywords": ["scala", "sangria", "graphql"]
+}
