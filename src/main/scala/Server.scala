@@ -22,7 +22,7 @@ object Server extends App {
   import system.dispatcher
 
   val executor = Executor(
-    schema = SchemaDefinition.Schema,
+    schema = SchemaDefinition.VideoSchema,
     userContext = new VideoRepo)
 
 val route: Route =

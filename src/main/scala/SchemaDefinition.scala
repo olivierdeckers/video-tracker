@@ -36,5 +36,5 @@ object SchemaDefinition {
         })
     ))
 
-  val Schema = Schema(Query)
+  val VideoSchema = Schema(Query)
 }
