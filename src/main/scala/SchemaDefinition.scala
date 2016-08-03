@@ -1,11 +1,17 @@
+import akka.actor.{Props, ActorRef}
+import akka.pattern.ask
+import akka.util.Timeout
 import sangria.schema._
 
+import scala.concurrent.duration._
 import scala.concurrent.Future
 
 /**
  * Defines a GraphQL schema for the current project
  */
 object SchemaDefinition {
+
+  val videoAggregateManager: ActorRef = Server.system.actorOf(Props[VideoAggregateManager])
 
   val Video = ObjectType("Video", "A video", fields[Unit, Video](
     Field("id", StringType, Some("The id of the video"), resolve = _.value.id),
@@ -23,7 +29,12 @@ object SchemaDefinition {
     "Query", fields[VideoRepo, Unit](
       Field("video", OptionType(Video),
         arguments = VideoArg :: Nil,
-        resolve = (ctx) => ctx.ctx.getVideo(ctx.arg(VideoArg))),
+        resolve = (ctx) => {
+          ctx.arg(VideoArg).fold[Future[Option[Video]]](Future.successful(None)) { id =>
+            implicit val timeout = Timeout(1.second)
+            (videoAggregateManager ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
+          }
+        }),
       Field("addVideo", OptionType(Video),
         arguments = AddVideoArgs,
         resolve = ctx => {
@@ -32,7 +43,10 @@ object SchemaDefinition {
             case (Some(id: String)) :: (name: String) :: Nil => Some(new Video(id, name))
             case _ => None
           }
-          v.fold[Option[Video]] (None) (video => Some(ctx.ctx.addVideo(video)))
+          v.fold[Option[Video]] (None) (video => {
+            videoAggregateManager ! AddVideo(video.id, video.name)
+            Some(video)
+          })
         })
     ))
 
