@@ -4,6 +4,10 @@
 
 sealed trait Command
 
-case class AddVideo(id: String, name: String) extends Command
-case class DeleteVideo(id: String) extends Command
-case class GetVideo(id: String) extends Command
+trait VideoCommand extends Command {
+  val id: String
+}
+case class AddVideo(override val id: String, name: String) extends VideoCommand
+case class DeleteVideo(id: String) extends VideoCommand
+case class GetVideo(id: String) extends VideoCommand
+

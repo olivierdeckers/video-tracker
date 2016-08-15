@@ -1,7 +1,7 @@
 import java.util.UUID
 
 import akka.actor.{ActorRef, ActorSystem, PoisonPill, Props}
-import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit}
+import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit, TestProbe}
 import org.scalatest._
 
 /**
@@ -31,15 +31,19 @@ class VideoAggregateSpec extends TestKit(ActorSystem("spec")) with fixture.FlatS
     videoAggregate ! GetVideo(id)
     expectMsg(Some(Video(id, "test")))
 
-    videoAggregate = system.actorOf(Props(new VideoAggregate(id)))
+    val testProbe = TestProbe()
+    testProbe watch videoAggregate
+    system.stop(videoAggregate)
+    testProbe.expectTerminated(videoAggregate)
+
+    videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-${id}")
     videoAggregate ! GetVideo(id)
     expectMsg(Some(Video(id, "test")))
   }
 
   override def withFixture(test: OneArgTest): Outcome = {
     val id = UUID.randomUUID().toString
-    println(id)
-    val videoAggregate = system.actorOf(Props(new VideoAggregate(id)))
+    val videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-${id}")
     test((id, videoAggregate))
   }
 

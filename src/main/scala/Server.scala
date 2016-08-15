@@ -25,37 +25,37 @@ object Server extends App {
     schema = SchemaDefinition.VideoSchema,
     userContext = new VideoRepo)
 
-val route: Route =
-  (post & path("graphql")) {
-    entity(as[JsValue]) { requestJson =>
-      val JsObject(fields) = requestJson
+  val route: Route =
+    (post & path("graphql")) {
+      entity(as[JsValue]) { requestJson =>
+        val JsObject(fields) = requestJson
 
-      val JsString(query) = fields("query")
+        val JsString(query) = fields("query")
 
-      val operation = fields.get("operation") collect {
-        case JsString(op) => op
-      }
+        val operation = fields.get("operation") collect {
+          case JsString(op) => op
+        }
 
-      val vars = fields.get("variables") match {
-        case Some(obj: JsObject) => obj
-        case Some(JsString(s)) => s.parseJson
-        case _ => JsObject.empty
-      }
+        val vars = fields.get("variables") match {
+          case Some(obj: JsObject) => obj
+          case Some(JsString(s)) => s.parseJson
+          case _ => JsObject.empty
+        }
 
-      QueryParser.parse(query) match {
+        QueryParser.parse(query) match {
 
-        // query parsed successfully, time to execute it!
-        case Success(queryAst) =>
-          complete(executor.execute(queryAst,
-            operationName = operation,
-            variables = vars))
+          // query parsed successfully, time to execute it!
+          case Success(queryAst) =>
+            complete(executor.execute(queryAst,
+              operationName = operation,
+              variables = vars))
 
-        // can't parse GraphQL query, return error
-        case Failure(error) =>
-          complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
+          // can't parse GraphQL query, return error
+          case Failure(error) =>
+            complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
+        }
       }
     }
-  }
 
   Http().bindAndHandle(route, "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
 }
