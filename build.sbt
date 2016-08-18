@@ -24,6 +24,6 @@ libraryDependencies ++= Seq(
 )
 
 Revolver.settings
-//Revolver.enableDebugging(port = 5050, suspend = false)
+Revolver.enableDebugging(port = 5050, suspend = false)
 
 fork in run := true

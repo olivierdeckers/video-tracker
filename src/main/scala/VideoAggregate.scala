@@ -2,42 +2,6 @@ import akka.persistence.PersistentActor
 import akka.actor._
 import akka.cluster.sharding.ShardRegion
 
-import scala.collection.mutable.LinkedHashMap
-import scala.concurrent.duration._
-
-//class VideoAggregateManager extends Actor with ActorLogging {
-//
-//  val aggregates = LinkedHashMap.empty[String, ActorRef]
-//  val maxAggregates = 1
-//
-//  println("starting aggregate manager")
-//
-//  def receive: Receive = {
-//    case event@AddVideo(id, _) =>
-//      getAggregate(id).forward(event)
-//    case event@DeleteVideo(id) =>
-//      getAggregate(id).forward(event)
-//    case event@GetVideo(id) =>
-//      getAggregate(id) forward event
-//    case e =>
-//      println("received invalid message: {}", e)
-//  }
-//
-//  def getAggregate = (id: String) => {
-//    aggregates.getOrElse(id, {
-//      println("creating new videoAggregate", id)
-//      val actor = context.actorOf(Props(new VideoAggregate(id)))
-//      aggregates.put(id, actor)
-//      if (aggregates.size > maxAggregates) {
-//        println("removing videoAggregate", aggregates.head._1)
-//        aggregates.remove(aggregates.head._1)
-//      }
-//      actor
-//    })
-//  }
-//
-//}
-
 object VideoAggregate {
 
   def props = Props[VideoAggregate]
@@ -52,13 +16,7 @@ object VideoAggregate {
   }
 }
 
-/*
-TODO create one processor per video, that loads the video into memory, validates and applies command
-Publisher can create materialized view in database that is eventually consistent, but videoprocessor is always consistent
-videoprocessor writes snapshot to snapshot store periodically
 
-Since videoprocessor is loaded lazily when request is sent to it, the startup cost of applying the events in memory is not that heavy and comparable to loading it from database
- */
 class VideoAggregate extends PersistentActor {
 
   var state: Option[Video] = None

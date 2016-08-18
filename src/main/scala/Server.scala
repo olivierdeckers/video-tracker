@@ -2,19 +2,16 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
-import akka.util.Timeout
 import sangria.parser.QueryParser
 import sangria.execution.Executor
 import sangria.marshalling.sprayJson._
 import spray.json._
 
-import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 object Server extends App {
@@ -68,23 +65,10 @@ object Server extends App {
       }
     }
 
-  val videoRoutes =
-    path("videos" / Segment) { id =>
-      get {
-        implicit val timeout = Timeout(1.second)
-        complete((videoRegion ? GetVideo(id)).mapTo[Option[Video]].map(_.toJson))
-      }
-    } ~
-    path("videos") {
-      post {
-        entity(as[Video]) { video =>
-          videoRegion ! AddVideo(video.id, video.name)
-          complete(ToResponseMarshallable(NoContent))
-        }
-      }
-    }
+  val videoRoutes = new VideoService().routes
+  val swaggerRoute = new SwaggerDocService(system).routes
 
-  val route = videoRoutes ~ graphQLRoute
+  val route = videoRoutes ~ graphQLRoute ~ swaggerRoute
 
   Http().bindAndHandle(route, "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
 }

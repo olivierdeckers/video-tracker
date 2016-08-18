@@ -12,8 +12,6 @@ import scala.concurrent.Future
  */
 object SchemaDefinition {
 
-//  val videoAggregateManager: ActorRef = Server.system.actorOf(Props[VideoAggregateManager])
-
   implicit val timeout = Timeout(1.second)
 
   val Video = ObjectType("Video", "A video", fields[Unit, Video](
@@ -35,7 +33,6 @@ object SchemaDefinition {
         resolve = (ctx) => {
           ctx.arg(VideoArg).fold[Future[Option[Video]]](Future.successful(None)) { id =>
             (Server.videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
-//            (videoAggregateManager ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
           }
         }),
       Field("addVideo", OptionType(Video),
@@ -48,7 +45,6 @@ object SchemaDefinition {
           }
           v.fold[Option[Video]] (None) (video => {
             Server.videoRegion ! AddVideo(video.id, video.name)
-//            videoAggregateManager ! AddVideo(video.id, video.name)
             Some(video)
           })
         })

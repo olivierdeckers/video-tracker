@@ -2,11 +2,11 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import spray.json._
 
-@ApiModel(description = "a video")
+//@ApiModel(description = "a video")
 case class Video(
-    @ApiModelProperty("UUID identifier")
+//    @ApiModelProperty("UUID identifier")
     id: String,
-    @ApiModelProperty("The video name")
+//    @ApiModelProperty("The video name")
     name: String)
 
 object VideoJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
@@ -19,7 +19,7 @@ class VideoRepo {
   def addVideo(video: Video): Video = {
     if (video.id.length == 0)
       throw new Exception("invalid id")
-    if (videos.find(v => v.id == video.id) != None)
+    if (videos.exists(v => v.id == video.id))
       throw new Exception("id already exists")
 
     videos = video :: videos

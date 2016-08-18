@@ -36,18 +36,18 @@ class VideoAggregateSpec extends TestKit(ActorSystem("spec")) with fixture.FlatS
     system.stop(videoAggregate)
     testProbe.expectTerminated(videoAggregate)
 
-    videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-${id}")
+    videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-$id")
     videoAggregate ! GetVideo(id)
     expectMsg(Some(Video(id, "test")))
   }
 
   override def withFixture(test: OneArgTest): Outcome = {
     val id = UUID.randomUUID().toString
-    val videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-${id}")
+    val videoAggregate = system.actorOf(Props[VideoAggregate], s"videoAggregate-$id")
     test((id, videoAggregate))
   }
 
-  override type FixtureParam = Tuple2[String, ActorRef]
+  override type FixtureParam = (String, ActorRef)
 
   override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
