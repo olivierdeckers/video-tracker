@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "org.iq80.leveldb"            % "leveldb"          % "0.7",
   "org.fusesource.leveldbjni"   % "leveldbjni-all"   % "1.8",
   "org.scalactic" %% "scalactic" % "3.0.0",
-  "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % "0.7.2"
 )
 
 Revolver.settings

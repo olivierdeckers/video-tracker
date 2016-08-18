@@ -14,14 +14,6 @@ object SchemaDefinition {
 
 //  val videoAggregateManager: ActorRef = Server.system.actorOf(Props[VideoAggregateManager])
 
-  //TODO move this somewhere else
-  val videoRegion: ActorRef = ClusterSharding(Server.system).start(
-    typeName = "VideoAggregate",
-    entityProps = Props[VideoAggregate],
-    settings = ClusterShardingSettings(Server.system),
-    extractEntityId = VideoAggregate.extractEntityId,
-    extractShardId = VideoAggregate.extractShardId)
-
   implicit val timeout = Timeout(1.second)
 
   val Video = ObjectType("Video", "A video", fields[Unit, Video](
@@ -42,7 +34,7 @@ object SchemaDefinition {
         arguments = VideoArg :: Nil,
         resolve = (ctx) => {
           ctx.arg(VideoArg).fold[Future[Option[Video]]](Future.successful(None)) { id =>
-            (videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
+            (Server.videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
 //            (videoAggregateManager ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
           }
         }),
@@ -55,7 +47,7 @@ object SchemaDefinition {
             case _ => None
           }
           v.fold[Option[Video]] (None) (video => {
-            videoRegion ! AddVideo(video.id, video.name)
+            Server.videoRegion ! AddVideo(video.id, video.name)
 //            videoAggregateManager ! AddVideo(video.id, video.name)
             Some(video)
           })
