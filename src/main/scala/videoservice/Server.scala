@@ -1,12 +1,13 @@
+package videoservice
+
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.pattern.ask
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
+import httpservices.{SwaggerDocService, VideoService}
 import sangria.parser.QueryParser
 import sangria.execution.Executor
 import sangria.marshalling.sprayJson._
@@ -21,17 +22,18 @@ object Server extends App {
   import system.dispatcher
 
   val executor = Executor(
-    schema = SchemaDefinition.VideoSchema,
-    userContext = new VideoRepo)
+    schema = SchemaDefinition.VideoSchema)
 
-  val videoRegion: ActorRef = ClusterSharding(Server.system).start(
+  final val videoRegion: ActorRef = ClusterSharding(Server.system).start(
     typeName = "VideoAggregate",
     entityProps = Props[VideoAggregate],
     settings = ClusterShardingSettings(Server.system),
     extractEntityId = VideoAggregate.extractEntityId,
     extractShardId = VideoAggregate.extractShardId)
 
-  import VideoJsonProtocol._
+  final val videoView = new VideoESView()
+
+  import videoservice.model.VideoJsonProtocol._
 
   val graphQLRoute: Route =
     (post & path("graphql")) {

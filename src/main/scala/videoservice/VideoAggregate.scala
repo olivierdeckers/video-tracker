@@ -1,6 +1,9 @@
+package videoservice
+
 import akka.persistence.PersistentActor
 import akka.actor._
 import akka.cluster.sharding.ShardRegion
+import videoservice.model.Video
 
 object VideoAggregate {
 
@@ -21,8 +24,10 @@ class VideoAggregate extends PersistentActor {
 
   var state: Option[Video] = None
 
+  override def persistenceId: String = "videoProcessor-" ++ self.path.name
+
   override def receiveRecover: Receive = {
-    case e: Event =>
+    case e: VideoEvent =>
       println("recover", e)
       updateState(e)
   }
@@ -40,26 +45,17 @@ class VideoAggregate extends PersistentActor {
       sender() ! state
   }
 
-  def updateState(event: Event): Unit = {
-    println("updating state")
+  def updateState(event: VideoEvent): Unit = {
     event match {
       case VideoAdded(id, name) =>
         val video = Video(id, name)
         state = Some(video)
-        // TODO this should be done in a separate actor: either a PersistentView or look at akka-persistent-query
-        VideoRepo.videos = video :: VideoRepo.videos
       case VideoDeleted(id) =>
         state = None
-        VideoRepo.videos = VideoRepo.videos.filter(v => v.id != id)
     }
   }
-
-  override def persistenceId: String = "videoProcessor-" ++ self.path.name
-
-  println(persistenceId)
-
 }
 
-sealed trait Event
-case class VideoAdded(id: String, name: String) extends Event
-case class VideoDeleted(id: String) extends Event
+sealed trait VideoEvent
+case class VideoAdded(id: String, name: String) extends VideoEvent
+case class VideoDeleted(id: String) extends VideoEvent

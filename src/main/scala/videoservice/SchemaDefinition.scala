@@ -1,8 +1,11 @@
-import akka.actor.{ActorRef, Props}
+package videoservice
+
+import java.util.UUID
+
 import akka.pattern.ask
 import akka.util.Timeout
-import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import sangria.schema._
+import videoservice.model.Video
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -27,10 +30,11 @@ object SchemaDefinition {
   )
 
   val Query = ObjectType(
-    "Query", fields[VideoRepo, Unit](
+    "Query", fields[Unit, Unit](
       Field("video", OptionType(Video),
         arguments = VideoArg :: Nil,
         resolve = (ctx) => {
+          //TODO return all videos if not specified
           ctx.arg(VideoArg).fold[Future[Option[Video]]](Future.successful(None)) { id =>
             (Server.videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
           }
@@ -39,14 +43,17 @@ object SchemaDefinition {
         arguments = AddVideoArgs,
         resolve = ctx => {
           println(AddVideoArgs.map(ctx.arg(_)))
-          val v = AddVideoArgs.map(ctx.arg(_)) match {
-            case (Some(id: String)) :: (name: String) :: Nil => Some(new Video(id, name))
+
+          //TODO extract this to implicit mapper?
+          val command = AddVideoArgs.map(ctx.arg(_)) match {
+            case List(Some(id: String), name: String) => Some(AddVideo(id, name))
+            case List(None, name: String) => Some(AddVideo(UUID.randomUUID().toString, name))
             case _ => None
           }
-          v.fold[Option[Video]] (None) (video => {
-            Server.videoRegion ! AddVideo(video.id, video.name)
-            Some(video)
-          })
+          command.map { command =>
+            Server.videoRegion ! command
+            new Video(command.id, command.name)
+          }
         })
     ))
 

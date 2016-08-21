@@ -3,11 +3,12 @@ import java.util.UUID
 import akka.actor.{ActorRef, ActorSystem, PoisonPill, Props}
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit, TestProbe}
 import org.scalatest._
+import videoservice.model.Video
+import videoservice.{AddVideo, DeleteVideo, GetVideo, VideoAggregate}
 
 /**
   * Created by olivierdeckers on 08/08/16.
   */
-// TODO experiment with Asyncflatspeclike?
 class VideoAggregateSpec extends TestKit(ActorSystem("spec")) with fixture.FlatSpecLike with BeforeAndAfterAll with ImplicitSender with DefaultTimeout {
 
   "A VideoAggregate" should "create a video" in { tuple =>

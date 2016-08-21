@@ -1,3 +1,5 @@
+package videoservice
+
 /**
   * Created by olivierdeckers on 26/07/16.
   */
