@@ -31,7 +31,13 @@ class VideoService()(implicit executionContext: ExecutionContext) {
     }
   }
 
-  @Path("")
+  @ApiOperation(value = "Search videos", response=classOf[Video], responseContainer="List", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name="query", required=false, dataType = "string", paramType = "query")
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code=200, response=classOf[Video], responseContainer="List", message = "Returns list of matching videos")
+  ))
   def getVideos = (get & parameters('query.?)) { q: Option[String] =>
     complete {
       import com.sksamuel.elastic4s.ElasticDsl._

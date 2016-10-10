@@ -36,7 +36,7 @@ object SchemaDefinition {
         resolve = (ctx) => {
           //TODO return all videos if not specified
           ctx.arg(VideoArg).fold[Future[Option[Video]]](Future.successful(None)) { id =>
-            (Server.videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
+              (Server.videoRegion ? GetVideo(id)).asInstanceOf[Future[Option[Video]]]
           }
         }),
       Field("addVideo", OptionType(Video),
